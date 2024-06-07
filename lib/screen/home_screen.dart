@@ -4,7 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:seong_flutter/screen/home_view_model.dart';
 import 'package:seong_flutter/screen/widget/custom_text_field.dart';
+
+import 'widget/custom_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -18,10 +21,33 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? selectedDateTime;
   List<List<String>> tableData = [];
   double dataTableWidth = 902;
+  bool isRun = false;
 
+  //ViewModel
+  Function()? listener;
+  final HomeViewModel vm = HomeViewModel();
+
+  // initState는 build될 시 가장 먼저 호출되는 함수, 한번만 실행됌.
+  // 보통 최초 실행 시 초기화가 필요한 변수들을 선언함.
   @override
   void initState() {
+    // viewModel Listener 추가
+    listener = () {
+      if (mounted) {
+        setState(() {});
+      }
+    };
+    vm.addListener(listener!);
     super.initState();
+  }
+
+  // 해당 화면이 종료 될 경우 호출 되는 함수, 즉 HomeScreen이 종료 될 때 dispose가 호출됨.
+  // 메모리 관리를 위해 Listener를 remove 해주어야한다.
+  @override
+  void dispose() {
+    vm.removeListener(listener!);
+    listener = null;
+    super.dispose();
   }
 
   @override
@@ -37,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return AppBar(
       centerTitle: true,
       backgroundColor: Colors.white,
-      title: Text(
+      title: const Text(
         'Battery Monitoring',
         style: TextStyle(
           fontSize: 32,
@@ -57,22 +83,32 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 제일 위로 붙도록 정렬
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   inputField(context),
                   selectTime(context),
-                  Row(
+                  Column(
                     children: [
-                      _button(() {
-                        runPythonScript(context);
-                      }, 'Download'),
-                      SizedBox(width: 10),
-                      _button(() {
-                        anotherFunction(context);
-                      }, 'Algorithm'),
-                      SizedBox(width: 10),
-                      _button(() {
-                        saveOpensearch(context);
-                      }, 'Opensearch'),
+                      Row(
+                        children: [
+                          _button(() {
+                            setState(() {
+                              runPythonScript(context);
+                            });
+                          }, 'Download'),
+                          SizedBox(width: 10),
+                          _button(() {
+                            anotherFunction(context);
+                          }, 'Algorithm'),
+                          SizedBox(width: 10),
+                          _button(() {
+                            saveOpensearch(context);
+                          }, 'Opensearch'),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+                      if (isRun) const CircularProgressIndicator(),
                     ],
                   )
                 ],
@@ -89,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget selectTime(BuildContext context) {
     const TextStyle textStyle =
         TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
+
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -111,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Time', style: TextStyle(fontSize: 18)),
+            const Text('Time', style: TextStyle(fontSize: 24)),
             const SizedBox(height: 20),
             SizedBox(
               width: 300,
@@ -147,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -159,6 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Form(
       key: _formKey,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CustomTextField(
             textController: textFieldController1,
@@ -237,34 +275,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> runPythonScript(BuildContext context) async {
     String downPythonScriptPath = 'app/data_down.py';
-    _showSnackbar(context, 'Running Python script...');
+    CustomWidget().showSnackBar(context, 'Running Python script...');
     ProcessResult result = await Process.run('python', [downPythonScriptPath]);
     print('\n${result.stdout}');
     print('stderr: ${result.stderr}');
     String errorMessage = await _readErrorLog();
-    _showErrorDialog(context, 'Error', errorMessage);
-    _showSnackbar(context, 'Python script executed.');
+    CustomWidget().showErrorDialog(context, 'Error', errorMessage);
+    CustomWidget().showSnackBar(context, 'Python script executed.');
   }
 
   Future<void> saveOpensearch(BuildContext context) async {
     String saveOpensearch = 'app/opensearch.py';
-    _showSnackbar(context, 'Running Opensearch script...');
+    CustomWidget().showSnackBar(context, 'Running Opensearch script...');
     ProcessResult result = await Process.run('python', [saveOpensearch]);
     print('\n${result.stdout}');
     print('stderr: ${result.stderr}');
-    _showSnackbar(context, 'Opensearch script executed.');
+    CustomWidget().showSnackBar(context, 'Opensearch script executed.');
   }
 
   Future<void> anotherFunction(BuildContext context) async {
     String alPythonScriptPath = 'app/Algorithm.py';
-    _showSnackbar(context, 'Running Algorithm script...');
+    CustomWidget().showSnackBar(context, 'Running Algorithm script...');
     ProcessResult result = await Process.run('python', [alPythonScriptPath]);
     print('\n${result.stdout}');
     await _loadDataFromFile();
     setState(() {});
-    _showSnackbar(context, 'Algorithm script executed.');
+    CustomWidget().showSnackBar(context, 'Algorithm script executed.');
     String errorMessage = await _readError_al();
-    _showErrorDialog(context, 'Error', errorMessage);
+    CustomWidget().showErrorDialog(context, 'Error', errorMessage);
   }
 
   Future<void> _selectDateTime(BuildContext context) async {
@@ -384,34 +422,5 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       return 'No error algorithm found.';
     }
-  }
-
-  void _showErrorDialog(BuildContext context, String title, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: [
-            TextButton(
-              child: Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showSnackbar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 }
