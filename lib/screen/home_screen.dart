@@ -52,34 +52,29 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
-          width: dataTableWidth + 100,
+          width: MediaQuery.sizeOf(context).width,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   inputField(context),
-                  SizedBox(width: 20),
                   selectTime(context),
-                  SizedBox(width: 20),
                   Row(
                     children: [
                       _button(() {
-                        _runPythonScript;
+                        runPythonScript(context);
                       }, 'Download'),
                       SizedBox(width: 10),
                       _button(() {
-                        _anotherFunction;
+                        anotherFunction(context);
                       }, 'Algorithm'),
                       SizedBox(width: 10),
-
                       _button(() {
-                        _saveOpensearch;
+                        saveOpensearch(context);
                       }, 'Opensearch'),
                     ],
                   )
-
                 ],
               ),
               SizedBox(height: 40),
@@ -92,45 +87,51 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget selectTime(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-        border: Border.all(
-          color: Colors.grey.shade200,
+    const TextStyle textStyle =
+        TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+          border: Border.all(
+            color: Colors.grey.shade200,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade300,
+              offset: const Offset(0, 0),
+              blurRadius: 8,
+            ),
+          ],
         ),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.grey.withOpacity(0.5),
-        //     spreadRadius: 3,
-        //     blurRadius: 7,
-        //     offset: Offset(0, 3), // changes position of shadow
-        //   ),
-        // ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Time', style: TextStyle(fontSize: 18)),
-          SizedBox(
-            width: 300,
-            child: selectedDateTime != null
-                ? Text(
-                    DateFormat('yyyy - MM - dd  HH:mm')
-                        .format(selectedDateTime!),
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  )
-                : SizedBox(),
-          ),
-          const SizedBox(height: 10),
-          _button(
-            () {
-              _selectDateTime(context);
-            },
-            'Calendar',
-          ),
-        ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Time', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 300,
+              child: selectedDateTime != null
+                  ? Text(
+                      DateFormat('yyyy - MM - dd  HH:mm')
+                          .format(selectedDateTime!),
+                      style: textStyle,
+                    )
+                  : Text("날짜를 선택해 주세요.", style: textStyle),
+            ),
+            const SizedBox(height: 20),
+            _button(
+              () {
+                _selectDateTime(context);
+              },
+              'Calendar',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -234,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _runPythonScript(BuildContext context) async {
+  Future<void> runPythonScript(BuildContext context) async {
     String downPythonScriptPath = 'app/data_down.py';
     _showSnackbar(context, 'Running Python script...');
     ProcessResult result = await Process.run('python', [downPythonScriptPath]);
@@ -245,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _showSnackbar(context, 'Python script executed.');
   }
 
-  void _saveOpensearch(BuildContext context) async {
+  Future<void> saveOpensearch(BuildContext context) async {
     String saveOpensearch = 'app/opensearch.py';
     _showSnackbar(context, 'Running Opensearch script...');
     ProcessResult result = await Process.run('python', [saveOpensearch]);
@@ -254,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _showSnackbar(context, 'Opensearch script executed.');
   }
 
-  void _anotherFunction(BuildContext context) async {
+  Future<void> anotherFunction(BuildContext context) async {
     String alPythonScriptPath = 'app/Algorithm.py';
     _showSnackbar(context, 'Running Algorithm script...');
     ProcessResult result = await Process.run('python', [alPythonScriptPath]);
