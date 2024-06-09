@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:seong_flutter/screen/home_view_model.dart';
 import 'package:seong_flutter/screen/widget/custom_text_field.dart';
+import 'package:seong_flutter/screen/widget/log_data_table.dart';
 
 import 'widget/custom_widget.dart';
 
@@ -19,7 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController textFieldController2 = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   DateTime? selectedDateTime;
-  List<List<String>> tableData = [];
   double dataTableWidth = 902;
   bool isRun = false;
 
@@ -113,8 +113,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 ],
               ),
-              SizedBox(height: 40),
-              _buildDataTable(),
+              const SizedBox(height: 40),
+              LogDataTable(
+                  dataTableWidth: dataTableWidth, tableData: vm.tableData),
             ],
           ),
         ),
@@ -247,32 +248,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDataTable() {
-    return Container(
-      width: dataTableWidth,
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 0.5),
-      ),
-      child: DataTable(
-        columns: const <DataColumn>[
-          DataColumn(label: Text('watch s/n')),
-          DataColumn(label: Text('date')),
-          DataColumn(label: Text('time')),
-          DataColumn(label: Text('dis_time')),
-          DataColumn(label: Text('lev')),
-          DataColumn(label: Text('pass/fail')),
-          DataColumn(label: Text('cri_lev')),
-          DataColumn(label: Text('cri_time')),
-        ],
-        rows: tableData.map((rowData) {
-          return DataRow(
-              cells: rowData.map((data) => DataCell(Text(data))).toList());
-        }).toList(),
-      ),
-    );
-  }
-
   Future<void> runPythonScript(BuildContext context) async {
     String downPythonScriptPath = 'app/data_down.py';
     CustomWidget().showSnackBar(context, 'Running Python script...');
@@ -298,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
     CustomWidget().showSnackBar(context, 'Running Algorithm script...');
     ProcessResult result = await Process.run('python', [alPythonScriptPath]);
     print('\n${result.stdout}');
-    await _loadDataFromFile();
+    await vm.loadDataFromFile();
     setState(() {});
     CustomWidget().showSnackBar(context, 'Algorithm script executed.');
     String errorMessage = await _readError_al();
@@ -358,38 +333,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await file.writeAsString('$data\n',
         mode: append ? FileMode.append : FileMode.write, flush: true);
     print('Data saved to ${file.path}');
-  }
-
-  Future<void> _loadDataFromFile() async {
-    final directory = Directory.current;
-    final path = directory.path;
-    final csvDirectory = Directory('$path/csv_files');
-
-    if (!csvDirectory.existsSync()) {
-      csvDirectory.createSync();
-    }
-
-    final file = File('${csvDirectory.path}/result.csv');
-    print(file);
-
-    if (file.existsSync()) {
-      List<String> lines = await file.readAsLines(encoding: utf8);
-      List<List<String>> loadedData = lines.map((line) {
-        List<String> rowData = line.trim().split(RegExp(r'\s+'));
-        return rowData;
-      }).toList();
-
-      int maxCells = 8;
-      loadedData.forEach((rowData) {
-        while (rowData.length < maxCells) {
-          rowData.add('');
-        }
-      });
-
-      setState(() {
-        tableData = loadedData;
-      });
-    }
   }
 
   Future<String> _readErrorLog() async {
