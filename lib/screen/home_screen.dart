@@ -1,16 +1,16 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:seong_flutter/screen/home_view_model.dart';
-import 'package:seong_flutter/screen/widget/custom_text_field.dart';
+import 'package:seong_flutter/sc'
+    'reen/widget/log_time_picker.dart';
+import 'package:seong_flutter/screen/widget/criteria_input_field.dart';
 import 'package:seong_flutter/screen/widget/log_data_table.dart';
 
-import 'widget/custom_widget.dart';
+import 'widget/my_widget.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -18,10 +18,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController textFieldController1 = TextEditingController();
   final TextEditingController textFieldController2 = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  DateTime? selectedDateTime;
-  double dataTableWidth = 902;
-  bool isRun = false;
 
   //ViewModel
   Function()? listener;
@@ -81,41 +77,23 @@ class _HomeScreenState extends State<HomeScreen> {
           width: MediaQuery.sizeOf(context).width,
           child: Column(
             children: [
+              /// Header영역 (inputFields)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 // 제일 위로 붙도록 정렬
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  inputField(context),
-                  selectTime(context),
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          _button(() {
-                            setState(() {
-                              runPythonScript(context);
-                            });
-                          }, 'Download'),
-                          SizedBox(width: 10),
-                          _button(() {
-                            anotherFunction(context);
-                          }, 'Algorithm'),
-                          SizedBox(width: 10),
-                          _button(() {
-                            saveOpensearch(context);
-                          }, 'Opensearch'),
-                        ],
-                      ),
-                      const SizedBox(height: 40),
-                      if (isRun) const CircularProgressIndicator(),
-                    ],
-                  )
+                  CriteriaInputField(
+                      textController1: textFieldController1,
+                      textController2: textFieldController2),
+                  LogTimePicker(
+                      textController1: textFieldController1,
+                      textController2: textFieldController2),
+                  rowButtons(context),
                 ],
               ),
               const SizedBox(height: 40),
-              LogDataTable(
-                  dataTableWidth: dataTableWidth, tableData: vm.tableData),
+              LogDataTable(tableData: vm.tableData),
             ],
           ),
         ),
@@ -123,247 +101,41 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget selectTime(BuildContext context) {
-    const TextStyle textStyle =
-        TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
-
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-          border: Border.all(
-            color: Colors.grey.shade200,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade300,
-              offset: const Offset(0, 0),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget rowButtons(BuildContext context) {
+    return Column(
+      children: [
+        Row(
           children: [
-            const Text('Time', style: TextStyle(fontSize: 24)),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: 300,
-              child: selectedDateTime != null
-                  ? Text(
-                      DateFormat('yyyy - MM - dd  HH:mm')
-                          .format(selectedDateTime!),
-                      style: textStyle,
-                    )
-                  : Text("날짜를 선택해 주세요.", style: textStyle),
-            ),
-            const SizedBox(height: 20),
-            _button(
-              () {
-                _selectDateTime(context);
-              },
-              'Calendar',
-            ),
+            MyWidget().defaultButton(() {
+              vm.runPythonScript(context);
+            }, 'Download'),
+            const SizedBox(width: 10),
+            MyWidget().defaultButton(() {
+              vm.anotherFunction(context);
+            }, 'Algorithm'),
+            const SizedBox(width: 10),
+            MyWidget().defaultButton(() {
+              vm.saveOpenSearch(context);
+            }, 'Opensearch'),
           ],
         ),
-      ),
+        const SizedBox(height: 40),
+        if (vm.isRun) const CircularProgressIndicator(),
+      ],
     );
   }
 
-  Widget _button(VoidCallback callback, String title) {
-    return GestureDetector(
-      onTap: callback,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(10)),
-          color: Colors.grey.shade200,
-        ),
-        child: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget inputField(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          CustomTextField(
-            textController: textFieldController1,
-            hintText: "input 0~100 integer",
-            label: 'criteria level',
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a value';
-              }
-              final int? number = int.tryParse(value);
-              if (number == null || number < 0 || number > 100) {
-                return 'Enter a number between 0 and 100';
-              }
-              return null;
-            },
-          ),
-          CustomTextField(
-            textController: textFieldController2,
-            hintText: "input 0~24 integer",
-            label: 'criteria time',
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a value';
-              }
-              final int? number = int.tryParse(value);
-              if (number == null || number < 1 || number > 24) {
-                return 'Enter a number between 1 and 24';
-              }
-              return null;
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String label, Function onPressed) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: ElevatedButton(
-        onPressed: () {
-          if (_formKey.currentState?.validate() ?? false) {
-            onPressed(context);
-          }
-        },
-        child: Text(label),
-      ),
-    );
-  }
-
-  Future<void> runPythonScript(BuildContext context) async {
-    String downPythonScriptPath = 'app/data_down.py';
-    CustomWidget().showSnackBar(context, 'Running Python script...');
-    ProcessResult result = await Process.run('python', [downPythonScriptPath]);
-    print('\n${result.stdout}');
-    print('stderr: ${result.stderr}');
-    String errorMessage = await _readErrorLog();
-    CustomWidget().showErrorDialog(context, 'Error', errorMessage);
-    CustomWidget().showSnackBar(context, 'Python script executed.');
-  }
-
-  Future<void> saveOpensearch(BuildContext context) async {
-    String saveOpensearch = 'app/opensearch.py';
-    CustomWidget().showSnackBar(context, 'Running Opensearch script...');
-    ProcessResult result = await Process.run('python', [saveOpensearch]);
-    print('\n${result.stdout}');
-    print('stderr: ${result.stderr}');
-    CustomWidget().showSnackBar(context, 'Opensearch script executed.');
-  }
-
-  Future<void> anotherFunction(BuildContext context) async {
-    String alPythonScriptPath = 'app/Algorithm.py';
-    CustomWidget().showSnackBar(context, 'Running Algorithm script...');
-    ProcessResult result = await Process.run('python', [alPythonScriptPath]);
-    print('\n${result.stdout}');
-    await vm.loadDataFromFile();
-    setState(() {});
-    CustomWidget().showSnackBar(context, 'Algorithm script executed.');
-    String errorMessage = await _readError_al();
-    CustomWidget().showErrorDialog(context, 'Error', errorMessage);
-  }
-
-  Future<void> _selectDateTime(BuildContext context) async {
-    DateTime date = DateTime.now();
-    TimeOfDay time = TimeOfDay.now();
-
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: date,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-
-    if (pickedDate != null) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: time,
-      );
-
-      if (pickedTime != null) {
-        final DateTime pickedDateTime = DateTime(
-          pickedDate.year,
-          pickedDate.month,
-          pickedDate.day,
-          pickedTime.hour,
-          pickedTime.minute,
-        );
-        String formattedDateTime =
-            DateFormat('yyyyMMdd HH').format(pickedDateTime);
-        print('Selected DateTime: $formattedDateTime');
-        await _saveToFile(formattedDateTime);
-
-        setState(() {
-          selectedDateTime = pickedDateTime;
-        });
-        await _saveToFile(
-            '${textFieldController1.text} ${textFieldController2.text}',
-            append: true);
-      }
-    }
-  }
-
-  Future<void> _saveToFile(String data, {bool append = false}) async {
-    final directory = Directory.current;
-    final path = directory.path;
-    final csvDirectory = Directory('$path/csv_files');
-
-    if (!csvDirectory.existsSync()) {
-      csvDirectory.createSync();
-    }
-
-    final file = File('${csvDirectory.path}/data.csv');
-    await file.writeAsString('$data\n',
-        mode: append ? FileMode.append : FileMode.write, flush: true);
-    print('Data saved to ${file.path}');
-  }
-
-  Future<String> _readErrorLog() async {
-    final directory = Directory.current;
-    final path = directory.path;
-    final errorLogFile = File('$path/error_data/error_log.txt');
-
-    if (errorLogFile.existsSync()) {
-      try {
-        return await errorLogFile.readAsString(encoding: utf8);
-      } catch (e) {
-        return 'Failed to read error log: $e';
-      }
-    } else {
-      return 'No error log found.';
-    }
-  }
-
-  Future<String> _readError_al() async {
-    final directory = Directory.current;
-    final path = directory.path;
-    final errorLogFile = File('$path/error_data/error_algorithm.txt');
-
-    if (errorLogFile.existsSync()) {
-      try {
-        return await errorLogFile.readAsString(encoding: utf8);
-      } catch (e) {
-        return 'Failed to read error log: $e';
-      }
-    } else {
-      return 'No error algorithm found.';
-    }
-  }
+  // Widget _buildActionButton(String label, Function onPressed) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 8.0),
+  //     child: ElevatedButton(
+  //       onPressed: () {
+  //         if (_formKey.currentState?.validate() ?? false) {
+  //           onPressed(context);
+  //         }
+  //       },
+  //       child: Text(label),
+  //     ),
+  //   );
+  // }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomWidget{
+class MyWidget {
   void showErrorDialog(BuildContext context, String title, String message) {
     showDialog(
       context: context,
@@ -20,6 +20,7 @@ class CustomWidget{
       },
     );
   }
+
   void showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -29,4 +30,22 @@ class CustomWidget{
     );
   }
 
+  Widget defaultButton(VoidCallback callback, String title) {
+    return GestureDetector(
+      onTap: callback,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+          color: Colors.grey.shade200,
+        ),
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
 }
