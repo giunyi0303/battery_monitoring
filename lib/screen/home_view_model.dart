@@ -103,7 +103,7 @@ class HomeViewModel extends ChangeNotifier {
   Future<String> _readErrorLog() async {
     final directory = Directory.current;
     final path = directory.path;
-    final errorLogFile = File('$path/error_data/error_log.txt');
+    final errorLogFile = File('$path/error_data/error_log.csv');
 
     if (errorLogFile.existsSync()) {
       try {
@@ -119,7 +119,7 @@ class HomeViewModel extends ChangeNotifier {
   Future<String> readErrorAl() async {
     final directory = Directory.current;
     final path = directory.path;
-    final errorLogFile = File('$path/error_data/error_algorithm.txt');
+    final errorLogFile = File('$path/error_data/error_algorithm.csv');
 
     if (errorLogFile.existsSync()) {
       try {

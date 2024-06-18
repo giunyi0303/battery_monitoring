@@ -148,17 +148,17 @@ class _LogTimePickerState extends State<LogTimePicker> {
         useMaterial3: false,
         scaffoldBackgroundColor: Colors.white,
       ),
-      title: Container(
-        margin: const EdgeInsets.only(top: 10, bottom: 10),
-        child: const Text(
-          "날짜와 시간을 선택해주세요",
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+      // title: Container(
+      //   margin: const EdgeInsets.only(top: 10, bottom: 10),
+      //   child: const Text(
+      //     "날짜와 시간을 선택해주세요",
+      //     style: TextStyle(
+      //       fontSize: 18,
+      //       color: Colors.black,
+      //       fontWeight: FontWeight.bold,
+      //     ),
+      //   ),
+      // ),
       separator: Divider(),
       context: context,
       initialDate: selectedDateTime,
